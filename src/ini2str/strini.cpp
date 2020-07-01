@@ -77,12 +77,6 @@ int StrINIClass::Load(Straw &straw)
                     strtrim(entry);
 
                     if (entry[0] != '\0') {
-                        strtrim(value);
-
-                        if (value[0] == '\0') {
-                            continue;
-                        }
-
                         INIEntry *entryptr = new INIEntry(entry, value);
                         if (!entryptr) {
                             captainslog_debug("Failed to create entry '%s = %s'.", entry, value);
@@ -122,9 +116,6 @@ int StrINIClass::Load(Straw &straw)
 
 bool StrINIClass::Put_Table_String(const char *section, const char *entry, const char *string, const char *lang)
 {
-    captainslog_assert(section != nullptr);
-    captainslog_assert(entry != nullptr);
-
     INISection *sectionptr;
     INIEntry *entryptr;
 
@@ -167,11 +158,6 @@ int StrINIClass::Get_Table_String(
     INIEntry *entryptr;
     const char *value = defvalue;
 
-    captainslog_assert(section != nullptr);
-    captainslog_assert(entry != nullptr);
-    captainslog_assert(buffer != nullptr);
-    captainslog_assert(length > 0);
-
     if (buffer != nullptr && length > 0 && section != nullptr && entry != nullptr) {
         if ((entryptr = Find_Entry(section, entry)) == nullptr || (value = entryptr->Get_Value()) == nullptr) {
             if (defvalue == nullptr) {
@@ -186,7 +172,6 @@ int StrINIClass::Get_Table_String(
         char *codepaged = UTF8_To_Codepage(value, Get_Lang_Code(lang));
         strlcpy(buffer, codepaged, length);
         delete[] codepaged;
-        strtrim(buffer);
 
         return int(strlen(buffer));
     }

@@ -1,4 +1,4 @@
-add_library(common
+add_library(common STATIC
     common/b64pipe.cpp
     common/b64straw.cpp
     common/base64.cpp
@@ -21,5 +21,10 @@ add_library(common
 target_link_libraries(common PUBLIC base captnlog)
 target_include_directories(common PUBLIC common)
 
-add_executable(ini2str ini2str/ini2str.cpp ini2str/strini.cpp)
-target_link_libraries(ini2str common)
+# String table convertor program
+add_library(ini2str STATIC ini2str/ini2str.cpp ini2str/strini.cpp)
+target_link_libraries(ini2str PUBLIC common)
+
+add_executable(strgen ini2str/strgen.cpp)
+target_link_libraries(strgen ini2str)
+
