@@ -28,3 +28,24 @@ target_link_libraries(ini2str PUBLIC common)
 add_executable(strgen ini2str/strgen.cpp)
 target_link_libraries(strgen ini2str)
 
+if(wxWidgets_FOUND)
+    if(NOT wxWidgets_wxrc_EXECUTABLE)
+        message(FATAL_ERROR "wxrc resource compiler was not found, please set wxWidgets_wxrc_EXECUTABLE manually.")
+    endif()
+
+    # WX GUI version of the string table convertor.
+    # Generate cpp/h files to embed xml resources in the binary.
+    add_custom_command(
+        OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/wxstrgenui.cpp"
+        COMMAND ${wxWidgets_wxrc_EXECUTABLE} --cpp-code --extra-cpp-code --output=${CMAKE_CURRENT_BINARY_DIR}/wxstrgenui.cpp ${CMAKE_CURRENT_SOURCE_DIR}/ini2str/wxstrgenui.xrc
+        DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/ini2str/wxstrgenui.xrc"
+    )
+
+    add_executable(wxstrgen ini2str/wxstrgen.cpp ${CMAKE_CURRENT_BINARY_DIR}/wxstrgenui.cpp)
+    target_link_libraries(wxstrgen ${wxWidgets_LIBRARIES} ini2str)
+    target_include_directories(wxstrgen PRIVATE ${CMAKE_CURRENT_BINARY_DIR} ${wxWidgets_INCLUDE_DIRS})
+
+    if(MSVC)
+        set_target_properties(wxstrgen PROPERTIES LINK_FLAGS "/subsystem:windows /ENTRY:WinMainCRTStartup")
+    endif()
+endif()

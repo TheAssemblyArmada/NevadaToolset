@@ -13,15 +13,15 @@ else()
     set(USE_ICU TRUE)
 endif()
 
-#option(BUILD_GUI_TOOLS "Build GUI versions of tools where available (Requires wxWidgets)." OFF)
+option(BUILD_GUI_TOOLS "Build GUI versions of tools where available (Requires wxWidgets)." OFF)
 
 if(USE_ICU)
     find_package(ICU REQUIRED data i18n io tu uc)
 endif()
 
-#if(BUILD_GUI_TOOLS)
-#    find_package(wxWidgets REQUIRED core base)
-#endif()
+if(BUILD_GUI_TOOLS)
+    find_package(wxWidgets REQUIRED core base xrc xml adv)
+endif()
 
 # Set version info for the base config module
 set(GITINFO_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
