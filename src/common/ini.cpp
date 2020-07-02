@@ -159,9 +159,9 @@ int INIClass::Save(Pipe &pipe) const
 
         // Write the section name to the stream.
         total += pipe.Put("[", 1);
-        total += pipe.Put(secptr->Get_Name(), strlen(secptr->Get_Name()));
+        total += pipe.Put(secptr->Get_Name(), (int)strlen(secptr->Get_Name()));
         total += pipe.Put("]", 1);
-        total += pipe.Put(SYS_NEW_LINE, strlen(SYS_NEW_LINE));
+        total += pipe.Put(SYS_NEW_LINE, (int)strlen(SYS_NEW_LINE));
 
         // Loop though entries and write to stream.
         for (INIEntry *entryptr = secptr->m_entryList.First(); entryptr != nullptr; entryptr = entryptr->Next()) {
@@ -172,18 +172,18 @@ int INIClass::Save(Pipe &pipe) const
             }
 
             // Write the entry name.
-            total += pipe.Put(entryptr->Get_Name(), strlen(entryptr->Get_Name()));
+            total += pipe.Put(entryptr->Get_Name(), (int)strlen(entryptr->Get_Name()));
             // Next, write the Equate char.
             total += pipe.Put("=", 1);
             // Finally write the value.
-            total += pipe.Put(entryptr->Get_Value(), strlen(entryptr->Get_Value()));
+            total += pipe.Put(entryptr->Get_Value(), (int)strlen(entryptr->Get_Value()));
             // Write a carriage return.
-            total += pipe.Put(SYS_NEW_LINE, strlen(SYS_NEW_LINE));
+            total += pipe.Put(SYS_NEW_LINE, (int)strlen(SYS_NEW_LINE));
         }
 
         // Write a new line underneath the last entry of the section
         // to space out the sections neatly.
-        total += pipe.Put(SYS_NEW_LINE, strlen(SYS_NEW_LINE));
+        total += pipe.Put(SYS_NEW_LINE, (int)strlen(SYS_NEW_LINE));
     }
 
     // End the data stream.
@@ -483,7 +483,7 @@ bool INIClass::Put_TextBlock(const char *section, const char *text)
             strlcpy(buffer, block_ptr, sizeof(buffer));
             snprintf(entry, sizeof(entry), "%d", line);
 
-            block_len = strlen(buffer);
+            block_len = (int)strlen(buffer);
 
             if (block_len <= 0) {
                 break;
@@ -538,7 +538,7 @@ int INIClass::Get_TextBlock(const char *section, char *buffer, int length) const
 
             Get_String(section, Get_Entry(section, i),"", buffer, length);
 
-            total = strlen(buffer);
+            total = (int)strlen(buffer);
             length -= total;
             buffer += total;
         }
@@ -730,7 +730,7 @@ int INIClass::Get_String(const char *section, const char *entry, const char *def
         strlcpy(buffer, value, length);
         strtrim(buffer);
 
-        return strlen(buffer);
+        return (int)strlen(buffer);
     }
 
     return 0;
@@ -799,5 +799,5 @@ void INIClass::Strip_Comments(char *line)
 
 int32_t const INIClass::CRC(const char *string)
 {
-    return Calculate_CRC(string, strlen(string));
+    return Calculate_CRC<CRCEngine>(string, (int)strlen(string));
 }

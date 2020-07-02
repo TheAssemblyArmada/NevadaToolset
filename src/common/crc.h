@@ -50,6 +50,10 @@ private:
     } m_buffer;
 };
 
-int32_t __cdecl Calculate_CRC(const void *buffer, unsigned length);
+template<typename CRC>
+int32_t __cdecl Calculate_CRC(const void *buffer, unsigned length)
+{
+    return CRC()(buffer, length);
+}
 
 #endif // CRC_H

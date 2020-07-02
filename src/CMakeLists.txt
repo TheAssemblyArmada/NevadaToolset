@@ -3,6 +3,9 @@ add_library(common STATIC
     common/b64straw.cpp
     common/base64.cpp
     common/basefile.cpp
+    common/blowfish.cpp
+    common/blowpipe.cpp
+    common/blowstraw.cpp
     common/buffer.cpp
     common/buffpipe.cpp
     common/buffstraw.cpp
@@ -11,10 +14,19 @@ add_library(common STATIC
     common/filepipe.cpp
     common/filestraw.cpp
     common/ini.cpp
+    common/mpmath.cpp
     common/pipe.cpp
+    common/pk.cpp
+    common/pkpipe.cpp
+    common/pkstraw.cpp
     common/ramfile.cpp
+    common/random.cpp
     common/rawfile.cpp
     common/readline.cpp
+    common/rndstraw.cpp
+    common/sha.cpp
+    common/shapipe.cpp
+    common/shastraw.cpp
     common/straw.cpp
 )
 

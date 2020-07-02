@@ -77,8 +77,3 @@ int32_t CRCEngine::operator()(const void *data, unsigned length)
 
     return Value();
 }
-
-int32_t __cdecl Calculate_CRC(const void *buffer, unsigned length)
-{
-    return CRCEngine()(buffer, length);
-}

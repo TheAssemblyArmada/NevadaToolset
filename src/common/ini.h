@@ -62,7 +62,7 @@ public:
     const char *Get_Value() { return m_value; }
     void Set_Value(const char *new_value);
 
-    int32_t const CRC(const char *value) const { return Calculate_CRC(value, (int)strlen(value)); }
+    int32_t const CRC(const char *value) const { return Calculate_CRC<CRCEngine>(value, (int)strlen(value)); }
 
 public:
     char *m_key;
@@ -84,7 +84,7 @@ public:
 
     int Get_Entry_Count() const { return m_entryIndex.Count(); }
 
-    int32_t const CRC(const char *value) const { return Calculate_CRC(value, unsigned(strlen(value))); }
+    int32_t const CRC(const char *value) const { return Calculate_CRC<CRCEngine>(value, unsigned(strlen(value))); }
 
 public:
     char *m_sectionName;
