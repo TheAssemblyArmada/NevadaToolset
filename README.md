@@ -6,10 +6,14 @@ A set of Open Source tools for manipulating types of game data from various earl
 
 Converts between a utf8 ini file format for easy translation and the in game binary string table in an old dos code page.
 
+### makemix
+
+Packs files into "mix" archive files.
+
 ## Licence
 
 The source code provided in this repository for
-NevadaTools is licenced under the [GNU General Public License version 2](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
+NevadaToolset is licenced under the [GNU General Public License version 2](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
 or later.
 
 ## Contact

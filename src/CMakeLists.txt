@@ -61,3 +61,7 @@ if(wxWidgets_FOUND)
         set_target_properties(wxstrgen PROPERTIES LINK_FLAGS "/subsystem:windows /ENTRY:WinMainCRTStartup")
     endif()
 endif()
+
+# Mix creator program
+add_executable(makemix makemix/makemix.cpp)
+target_link_libraries(makemix PUBLIC common)
