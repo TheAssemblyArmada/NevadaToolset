@@ -74,13 +74,13 @@ inline int FileInfo_Compare(const void *info1, const void *info2)
     return -1;
 }
 
-template<class FC>
-class MixFileClass : public Node<MixFileClass<FC> *>
+template<typename FC, typename CRC>
+class MixFileClass : public Node<MixFileClass<FC, CRC> *>
 {
 #ifndef COMPILER_WATCOM
     // Looks like watcom doesn't like these declarations, newer compilers need them for standards compliance related to
     // template lookup.
-    using Node<MixFileClass<FC> *>::Unlink;
+    using Node<MixFileClass<FC, CRC> *>::Unlink;
 #endif
 public:
     MixFileClass(const char *filename, PKey *key = nullptr);
@@ -96,9 +96,9 @@ public:
 
     static void Discard_Cache(const char *filename);
     static void *Retrieve(const char *filename);
-    static MixFileClass<FC> *Finder(const char *filename);
+    static MixFileClass<FC, CRC> *Finder(const char *filename);
     static BOOL Cache(const char *filename, BufferClass *buffer = nullptr);
-    static BOOL Offset(const char *filename, void **cachedfile = nullptr, MixFileClass<FC> **mixfile = nullptr,
+    static BOOL Offset(const char *filename, void **cachedfile = nullptr, MixFileClass<FC, CRC> **mixfile = nullptr,
         int *file_offset = 0, int *file_size = 0);
 
 private:
@@ -123,14 +123,14 @@ private:
     FileInfoStruct *m_FileIndex;
     uint8_t *m_FileCache;
 
-    static List<MixFileClass<FC> *> s_MixList;
+    static List<MixFileClass<FC, CRC> *> s_MixList;
 };
 
-template<class FC>
-List<MixFileClass<FC> *> MixFileClass<FC>::s_MixList;
+template<typename FC, typename CRC>
+List<MixFileClass<FC, CRC> *> MixFileClass<FC, CRC>::s_MixList;
 
-template<class FC>
-MixFileClass<FC>::MixFileClass(const char *filename, PKey *key) :
+template<typename FC, typename CRC>
+MixFileClass<FC, CRC>::MixFileClass(const char *filename, PKey *key) :
     m_FileName(nullptr),
     m_HasChecksum(false),
     m_IsEncrypted(false),
@@ -144,18 +144,14 @@ MixFileClass<FC>::MixFileClass(const char *filename, PKey *key) :
     captainslog_assert(filename != nullptr);
     captainslog_assert(key != nullptr);
 
-    if (!Force_CD_Available(g_RequiredCD)) {
-        Emergency_Exit(0xFF);
-    }
-
     // Create a working file class to handle our mix file.
     FC file(filename);
 
     Load_File(file, key);
 }
 
-template<class FC>
-MixFileClass<FC>::MixFileClass(FC &file, PKey *key) :
+template<typename FC, typename CRC>
+MixFileClass<FC, CRC>::MixFileClass(FC &file, PKey *key) :
     m_FileName(nullptr),
     m_HasChecksum(false),
     m_IsEncrypted(false),
@@ -171,8 +167,8 @@ MixFileClass<FC>::MixFileClass(FC &file, PKey *key) :
     Load_File(file, key);
 }
 
-template<class FC>
-void MixFileClass<FC>::Load_File(FC &file, PKey *key)
+template<typename FC, typename CRC>
+void MixFileClass<FC, CRC>::Load_File(FC &file, PKey *key)
 {
     // Store the filename for the mix file.
     m_FileName = strdup(file.File_Name());
@@ -242,8 +238,8 @@ void MixFileClass<FC>::Load_File(FC &file, PKey *key)
     }
 }
 
-template<class FC>
-MixFileClass<FC>::~MixFileClass()
+template<typename FC, typename CRC>
+MixFileClass<FC, CRC>::~MixFileClass()
 {
     if (m_FileName) {
         free((void *)m_FileName);
@@ -264,8 +260,8 @@ MixFileClass<FC>::~MixFileClass()
 /**
  * @brief Retrieve a pointer to a file's data if the mix containing it is cached in memory already.
  */
-template<class FC>
-void *MixFileClass<FC>::Retrieve(const char *filename)
+template<typename FC, typename CRC>
+void *MixFileClass<FC, CRC>::Retrieve(const char *filename)
 {
     captainslog_assert(filename != nullptr);
     // This is a pointer to the retrieved file data.
@@ -278,12 +274,12 @@ void *MixFileClass<FC>::Retrieve(const char *filename)
 /**
  * @brief Find the first MixFileClass instance that matches the provided name.
  */
-template<class FC>
-MixFileClass<FC> *MixFileClass<FC>::Finder(const char *filename)
+template<typename FC, typename CRC>
+MixFileClass<FC, CRC> *MixFileClass<FC, CRC>::Finder(const char *filename)
 {
     captainslog_assert(filename != nullptr);
 
-    MixFileClass<FC> *file = nullptr;
+    MixFileClass<FC, CRC> *file = nullptr;
 
 #if defined(PLATFORM_WINDOWS)
 
@@ -321,12 +317,12 @@ MixFileClass<FC> *MixFileClass<FC>::Finder(const char *filename)
 /**
  * @brief Cache the named mix if it exists in the list of loaded mix files already.
  */
-template<class FC>
-BOOL MixFileClass<FC>::Cache(const char *filename, BufferClass *buffer)
+template<typename FC, typename CRC>
+BOOL MixFileClass<FC, CRC>::Cache(const char *filename, BufferClass *buffer)
 {
     captainslog_assert(filename != nullptr);
 
-    MixFileClass<FC> *file = Finder(filename);
+    MixFileClass<FC, CRC> *file = Finder(filename);
 
     if (file != nullptr) {
         return file->Cache(buffer);
@@ -338,8 +334,8 @@ BOOL MixFileClass<FC>::Cache(const char *filename, BufferClass *buffer)
 /**
  * @brief Cache the mix file into memory.
  */
-template<class FC>
-bool MixFileClass<FC>::Cache(BufferClass *buffer)
+template<typename FC, typename CRC>
+bool MixFileClass<FC, CRC>::Cache(BufferClass *buffer)
 {
     int buff_size;
     SHAEngine::SHADigest computed_checksum;
@@ -419,10 +415,10 @@ bool MixFileClass<FC>::Cache(BufferClass *buffer)
 /**
  * @brief Delete the cache for the named mix file.
  */
-template<class FC>
-void MixFileClass<FC>::Discard_Cache(const char *filename)
+template<typename FC, typename CRC>
+void MixFileClass<FC, CRC>::Discard_Cache(const char *filename)
 {
-    MixFileClass<FC> *file;
+    MixFileClass<FC, CRC> *file;
 
     captainslog_assert(filename != nullptr);
 
@@ -434,8 +430,8 @@ void MixFileClass<FC>::Discard_Cache(const char *filename)
 /**
  * @brief Delete the cache for this mix file.
  */
-template<class FC>
-void MixFileClass<FC>::Invalidate_Cache()
+template<typename FC, typename CRC>
+void MixFileClass<FC, CRC>::Invalidate_Cache()
 {
     if (m_FileCache && m_IsAllocated) {
         delete[] m_FileCache;
@@ -455,9 +451,9 @@ void MixFileClass<FC>::Invalidate_Cache()
  * @param file_size Pointer to a 32bit int to set to the size of the file within the first mix that requested file is found
  *        in.
  */
-template<class FC>
-BOOL MixFileClass<FC>::Offset(
-    const char *filename, void **cachedfile, MixFileClass<FC> **mixfile, int *file_offset, int *file_size)
+template<typename FC, typename CRC>
+BOOL MixFileClass<FC, CRC>::Offset(
+    const char *filename, void **cachedfile, MixFileClass<FC, CRC> **mixfile, int *file_offset, int *file_size)
 {
     if (filename == nullptr) {
         return false;
@@ -468,11 +464,11 @@ BOOL MixFileClass<FC>::Offset(
     FileInfoStruct entry;
 
     // If the filename is valid, generate a hash based on the filename so we
-    entry.m_CRC = Calculate_CRC(strupr(fname), strlen(fname));
+    entry.m_CRC = Calculate_CRC<CRC>(strupr(fname), strlen(fname));
 
     // Iterate over the list of loaded MixFileClass' and search them until
     // we find one that has the file or we reach the end of the list.
-    for (MixFileClass<FC> *tmp_mix = s_MixList.First(); tmp_mix != nullptr && tmp_mix->Is_Valid();
+    for (MixFileClass<FC, CRC> *tmp_mix = s_MixList.First(); tmp_mix != nullptr && tmp_mix->Is_Valid();
          tmp_mix = tmp_mix->Next()) {
         // compare the current entry with the entry we need.
         FileInfoStruct *entry_pointer =
