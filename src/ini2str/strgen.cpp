@@ -15,6 +15,9 @@
 #include "always.h"
 #include "ini2str.h"
 #include "win32compat.h"
+#include <cstring>
+
+using std::strcmp;
 
 int main(int argc, char **argv)
 {
