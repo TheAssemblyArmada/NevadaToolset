@@ -1,0 +1,60 @@
+name: windows
+
+on:
+  pull_request:
+  push:
+  release:
+    types: published
+
+jobs:
+  build:
+    runs-on: windows-2019
+    strategy:
+      matrix:
+        buildtype: [Debug, Release]
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: 'true'
+    - uses: microsoft/setup-msbuild@v1.0.0
+    - uses: ilammy/msvc-dev-cmd@v1
+
+    - name: Install dependencies
+      env:
+        WXVER: wxWidgets-3.0.5
+        BUILDTYPE: ${{ matrix.buildtype }}
+      run: |
+        git clone --branch v3.0.5 --depth 1 https://github.com/wxWidgets/wxWidgets.git D:\$env:WXVER
+        Copy-Item D:\$env:WXVER\include\wx\msw\setup0.h -Destination D:\$env:WXVER\include\wx\msw\setup.h
+        Copy-Item D:\$env:WXVER\include\wx\msw\setup0.h -Destination D:\$env:WXVER\include\wx\setup.h
+        cd D:\$env:WXVER\build\msw
+        msbuild wx_vc12.sln /p:Configuration=Release /p:Platform=x64 /p:PlatformToolset=v142 /target:adv,base,core,html,media,net,propgrid,qa,wxexpat,wxjpeg,wxpng,wxregex,wxtiff,wxzlib,xml,xrc
+        msbuild wx_vc12.sln /p:Configuration=Debug /p:Platform=x64 /p:PlatformToolset=v142 /target:adv,base,core,html,media,net,propgrid,qa,wxexpat,wxjpeg,wxpng,wxregex,wxtiff,wxzlib,xml,xrc
+        cd D:\$env:WXVER\utils\wxrc
+        Copy-Item D:\$env:WXVER\include\wx\msw\setup0.h -Destination D:\$env:WXVER\include\wx\setup.h
+        nmake /f makefile.vc TARGET_CPU=AMD64 BUILD=release
+
+    - name: Build toolset
+      env:
+        WXVER: wxWidgets-3.0.5
+        BUILDTYPE: ${{ matrix.buildtype }}
+      run: |
+        If ($env:BUILDTYPE -eq "Debug") {
+            $env:WXCONFIG = "mswud"
+        } else {
+            $env:WXCONFIG = "mswu"
+        }
+        cmake -DCMAKE_BUILD_TYPE=${{ matrix.buildtype }} -DBUILD_GUI_TOOLS=ON -DwxWidgets_wxrc_EXECUTABLE=D:\$env:WXVER\utils\wxrc\vc_mswu_x64\wxrc.exe -DwxWidgets_ROOT_DIR=D:\$env:WXVER -DwxWidgets_LIB_DIR=D:\$env:WXVER\libs\vc_x64_lib -DwxWidgets_CONFIGURATION=$env:WXCONFIG -B build
+        cmake --build build --parallel --config ${{ matrix.buildtype }}
+
+    - name: Create toolset archive
+      shell: bash
+      run: |
+        mkdir artifact
+        7z a artifact/nevadatools_win_${{ matrix.buildtype }}.zip ./build/src/${{ matrix.buildtype }}/makemix.exe ./build/src/${{ matrix.buildtype }}/strgen.exe ./build/src/${{ matrix.buildtype }}/wxstrgen.exe
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v1
+      with:
+        name: toolset_archives
+        path: artifact
