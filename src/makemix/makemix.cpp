@@ -8,14 +8,19 @@
 #include "rawfile.h"
 #include "readline.h"
 #include "rndstraw.h"
+#include <gitverinfo.h>
 
 #ifdef PLATFORM_WINDOWS
 #include <sysinfoapi.h>
 #endif
 
-void Print_Help(void)
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#endif
+
+void Print_Help()
 {
-    printf("\nMakeMix v0.1 " __DATE__
+    printf("\nMakeMix Revision: %s Date: %s"
            ".\n\n"
            "Usage is makemix [-e -s -c -q -i directory -m filename -h -?] mixfile.\n\n"
            "    -e Encrypt the file header, supported in Red Alert onward.\n\n"
@@ -26,14 +31,16 @@ void Print_Help(void)
            "       This defaults to current working directory.\n\n"
            "    -m Specify a manifest file, listing the files to add.\n"
            "       Will add all files found in the search directory otherwise.\n\n"
-           "    -h -? displays this help.\n\n");
+           "    -h -? displays this help.\n\n",
+        g_gitShortSHA1,
+        g_gitCommitDate);
 }
 
-bool Encrypt;
-bool Checksum;
-bool Quiet;
-bool UseCRC;
-const char *BasePath;
+bool g_encrypt;
+bool g_checksum;
+bool g_quiet;
+bool g_useCRC;
+const char *g_basePath;
 
 template<typename CRC>
 int Create_From_Manifest(const char *manifest, const char *outfile)
@@ -42,14 +49,14 @@ int Create_From_Manifest(const char *manifest, const char *outfile)
     char fullpath[PATH_MAX];
     bool eof = false;
     RawFileClass tfc(manifest);
-    MixFileCreatorClass<RawFileClass, CRC> mc(outfile, Checksum, Encrypt, Quiet);
+    MixFileCreatorClass<RawFileClass, CRC> mc(outfile, g_checksum, g_encrypt, g_quiet);
     tfc.Open();
 
     while (!eof) {
         Read_Line(tfc, buffer, sizeof(buffer), eof);
 
         if (strlen(buffer) > 0) {
-            snprintf(fullpath, PATH_MAX, "%s/%s", BasePath, buffer);
+            snprintf(fullpath, sizeof(fullpath), "%s/%s", g_basePath, buffer);
             mc.Add_File(fullpath);
         }
     }
@@ -63,8 +70,8 @@ int Create_From_Manifest(const char *manifest, const char *outfile)
 template<typename CRC>
 int Create_From_Directory(const char *outfile)
 {
-    MixFileCreatorClass<RawFileClass, CRC> mc(outfile, Checksum, Encrypt, Quiet);
-    mc.Add_Files(BasePath);
+    MixFileCreatorClass<RawFileClass, CRC> mc(outfile, g_checksum, g_encrypt, g_quiet);
+    mc.Add_Files(g_basePath);
     printf("Writing %s.\n", mc.Get_Filename());
     mc.Write_Mix();
 
@@ -98,9 +105,9 @@ PKey INI_Get_PKey(INIClass &ini, bool fast)
     return key;
 }
 
-void Key_Init(void)
+void Key_Init()
 {
-    static char const Keys[] =
+    static const char Keys[] =
         "[PublicKey]\n1=AihRvNoIbTn85FZRYNZRcT+i6KpU+maCsEqr3Q5q+LDB5tH7Tz2qQ38V\n\n"
         "[PrivateKey]\n1=AigKVje8mROcR8QixnxUEF5b29Curkq01DNDWCdOG99XBqH79OaCiTCB\n\n";
 
@@ -113,7 +120,7 @@ void Key_Init(void)
     g_PrivateKey = INI_Get_PKey(ini, false);
 }
 
-void Init_Random(void)
+void Init_Random()
 {
 #ifdef PLATFORM_WINDOWS
     struct _SYSTEMTIME SystemTime;
@@ -140,32 +147,37 @@ void Init_Random(void)
     g_CryptRandom.Seed_Bit(SystemTime.wDayOfWeek);
     g_CryptRandom.Seed_Bit(SystemTime.wMonth);
     g_CryptRandom.Seed_Bit(SystemTime.wYear);
-#else // !PLATFORM_WINDOWS
-    MiscUtil::Clock_Get_Time(CLOCK_REALTIME, &MicroTime);
-    SystemTime = localtime(&MicroTime.tv_sec);
-    g_CryptRandom.Seed_Byte(MicroTime.tv_nsec / 1000);
-    g_CryptRandom.Seed_Bit(SystemTime->tm_sec);
-    g_CryptRandom.Seed_Bit(SystemTime->tm_sec >> 1);
-    g_CryptRandom.Seed_Bit(SystemTime->tm_sec >> 2);
-    g_CryptRandom.Seed_Bit(SystemTime->tm_sec >> 3);
-    g_CryptRandom.Seed_Bit(SystemTime->tm_sec >> 4);
-    g_CryptRandom.Seed_Bit(SystemTime->tm_min);
-    g_CryptRandom.Seed_Bit(SystemTime->tm_min >> 1);
-    g_CryptRandom.Seed_Bit(SystemTime->tm_min >> 2);
-    g_CryptRandom.Seed_Bit(SystemTime->tm_min >> 3);
-    g_CryptRandom.Seed_Bit(SystemTime->tm_min >> 4);
-    g_CryptRandom.Seed_Bit(SystemTime->tm_hour);
-    g_CryptRandom.Seed_Bit(SystemTime->tm_mday);
-    g_CryptRandom.Seed_Bit(SystemTime->tm_wday);
-    g_CryptRandom.Seed_Bit(SystemTime->tm_mon);
-    g_CryptRandom.Seed_Bit(SystemTime->tm_year);
+#elif defined HAVE_SYS_TIME_H
+    struct tm *sys_time;
+    struct timeval curr_time;
+    gettimeofday(&curr_time, nullptr);
+    sys_time = localtime(&curr_time.tv_sec);
+
+    g_CryptRandom.Seed_Byte(curr_time.tv_usec / 1000);
+    g_CryptRandom.Seed_Bit(sys_time->tm_sec);
+    g_CryptRandom.Seed_Bit(sys_time->tm_sec >> 1);
+    g_CryptRandom.Seed_Bit(sys_time->tm_sec >> 2);
+    g_CryptRandom.Seed_Bit(sys_time->tm_sec >> 3);
+    g_CryptRandom.Seed_Bit(sys_time->tm_sec >> 4);
+    g_CryptRandom.Seed_Bit(sys_time->tm_min);
+    g_CryptRandom.Seed_Bit(sys_time->tm_min >> 1);
+    g_CryptRandom.Seed_Bit(sys_time->tm_min >> 2);
+    g_CryptRandom.Seed_Bit(sys_time->tm_min >> 3);
+    g_CryptRandom.Seed_Bit(sys_time->tm_min >> 4);
+    g_CryptRandom.Seed_Bit(sys_time->tm_hour);
+    g_CryptRandom.Seed_Bit(sys_time->tm_mday);
+    g_CryptRandom.Seed_Bit(sys_time->tm_wday);
+    g_CryptRandom.Seed_Bit(sys_time->tm_mon);
+    g_CryptRandom.Seed_Bit(sys_time->tm_year);
+#else
+#error Suitable time functions not found.
 #endif // PLATFORM_WINDOWS
 }
 
 int main(int argc, char *argv[])
 {
-    BasePath = "./";
-    char const *manifest = NULL;
+    g_basePath = "./";
+    const char *manifest = NULL;
 
     if (argc <= 1) {
         Print_Help();
@@ -175,17 +187,17 @@ int main(int argc, char *argv[])
     int i;
     for (i = 1; i < argc; ++i) {
         if (strcmp(argv[i], "-e") == 0) {
-            Encrypt = true;
+            g_encrypt = true;
             Init_Random();
             Key_Init();
         } else if (strcmp(argv[i], "-s") == 0) {
-            Checksum = true;
+            g_checksum = true;
         } else if (strcmp(argv[i], "-c") == 0) {
-            UseCRC = true;
+            g_useCRC = true;
         } else if (strcmp(argv[i], "-q") == 0) {
-            Quiet = true;
+            g_quiet = true;
         } else if (strcmp(argv[i], "-i") == 0) {
-            BasePath = argv[++i];
+            g_basePath = argv[++i];
         } else if (strcmp(argv[i], "-m") == 0) {
             manifest = argv[++i];
         } else if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "-?") == 0) {
@@ -201,32 +213,30 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    if (UseCRC) {
-#if 0 // TODO: TS/RA2 support
+    if (g_useCRC) {
         if (manifest != NULL) {
-            if (!Quiet) {
+            if (!g_quiet) {
                 printf("Creating CRC32 Mix file from mainifest %s.\n", manifest);
             }
 
             return Create_From_Manifest<CRC32Engine>(manifest, argv[argc - 1]);
         } else {
-            if (!Quiet) {
-                printf("Creating CRC32 Mix file from directory %s.\n", BasePath);
+            if (!g_quiet) {
+                printf("Creating CRC32 Mix file from directory %s.\n", g_basePath);
             }
 
             return Create_From_Directory<CRC32Engine>(argv[argc - 1]);
         }
-#endif
     } else {
         if (manifest != NULL) {
-            if (!Quiet) {
+            if (!g_quiet) {
                 printf("Creating C&C Hash Mix file from mainifest %s.\n", manifest);
             }
 
             return Create_From_Manifest<CRCEngine>(manifest, argv[argc - 1]);
         } else {
-            if (!Quiet) {
-                printf("Creating C&C Hash Mix file from directory %s.\n", BasePath);
+            if (!g_quiet) {
+                printf("Creating C&C Hash Mix file from directory %s.\n", g_basePath);
             }
 
             return Create_From_Directory<CRCEngine>(argv[argc - 1]);

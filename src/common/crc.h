@@ -50,6 +50,30 @@ private:
     } m_buffer;
 };
 
+class CRC32Engine
+{
+public:
+    CRC32Engine(int32_t initial = 0) : m_crc(initial), m_index(0) { m_buffer.integer = 0; }
+
+    int32_t operator()(const void *buffer, unsigned length = 0);
+    operator int32_t() { return Value(); }
+
+private:
+    void operator()(char datnum);
+    int32_t Value();
+    bool Buffer_Needs_Data() { return m_index != 0; }
+
+private:
+    int32_t m_crc;
+    int m_index;
+
+    union
+    {
+        int32_t integer;
+        int8_t bytes[4];
+    } m_buffer;
+};
+
 template<typename CRC>
 int32_t __cdecl Calculate_CRC(const void *buffer, unsigned length)
 {

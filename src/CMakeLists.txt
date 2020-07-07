@@ -56,6 +56,8 @@ if(wxWidgets_FOUND)
     add_executable(wxstrgen ini2str/wxstrgen.cpp ${CMAKE_CURRENT_BINARY_DIR}/wxstrgenui.cpp)
     target_link_libraries(wxstrgen ${wxWidgets_LIBRARIES} ini2str)
     target_include_directories(wxstrgen PRIVATE ${CMAKE_CURRENT_BINARY_DIR} ${wxWidgets_INCLUDE_DIRS})
+    target_compile_options(wxstrgen PRIVATE ${wxWidgets_CXX_FLAGS})
+    target_compile_definitions(wxstrgen PRIVATE ${wxWidgets_DEFINITIONS})
 
     if(MSVC)
         set_target_properties(wxstrgen PROPERTIES LINK_FLAGS "/subsystem:windows /ENTRY:WinMainCRTStartup")
