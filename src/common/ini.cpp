@@ -18,6 +18,7 @@
 #include "b64straw.h"
 #include "buffpipe.h"
 #include "buffstraw.h"
+#include "cstraw.h"
 #include "filepipe.h"
 #include "filestraw.h"
 #include "rawfile.h"
@@ -204,10 +205,12 @@ int INIClass::Load(Straw &straw)
 {
     char buffer[MAX_LINE_LENGTH];
     bool end_of_file = false;
+    CacheStraw cstraw(nullptr, 0x4000);
+    cstraw.Get_From(&straw);
 
     // Read all lines until we find the first section.
     while (!end_of_file) {
-        Read_Line(straw, buffer, MAX_LINE_LENGTH, end_of_file);
+        Read_Line(cstraw, buffer, MAX_LINE_LENGTH, end_of_file);
         if (end_of_file) {
             captainslog_debug("INIClass::Load() - reached end of file before finding a section");
             return INI_LOAD_INVALID;
@@ -235,7 +238,7 @@ int INIClass::Load(Straw &straw)
         }
 
         while (!end_of_file) {
-            int count = Read_Line(straw, buffer, sizeof(buffer), end_of_file);
+            int count = Read_Line(cstraw, buffer, sizeof(buffer), end_of_file);
             // Check we don't have another section.
             if (buffer[0] == '[' && strchr(buffer, ']')) {
                 break;
@@ -271,7 +274,7 @@ int INIClass::Load(Straw &straw)
                         }
 
                         // Is this Name, Value or something?
-                        CRC(entryptr->Get_Name());
+                        //CRC(entryptr->Get_Name());
                         int32_t crc = CRC(entryptr->Get_Name());
 
                         if (section->m_entryIndex.Is_Present(crc)) {
@@ -599,8 +602,8 @@ int INIClass::Get_Hex(const char *section, const char *entry, int defvalue) cons
 {
     INIEntry *entryptr;
 
-    if (section && entry && (entryptr = Find_Entry(section, entry)) != nullptr && *(entryptr->Get_Value())) {
-        return sscanf(entryptr->Get_Name(), "%x", (unsigned *)&defvalue);
+    if (section && entry && (entryptr = Find_Entry(section, entry)) != nullptr && *(entryptr->Get_Name())) {
+        sscanf(entryptr->Get_Value(), "%x", (unsigned *)&defvalue);
     }
 
     return defvalue;
@@ -799,5 +802,5 @@ void INIClass::Strip_Comments(char *line)
 
 int32_t const INIClass::CRC(const char *string)
 {
-    return Calculate_CRC<CRCEngine>(string, (int)strlen(string));
+    return Calculate_CRC<CRC32Engine>(string, (int)strlen(string));
 }

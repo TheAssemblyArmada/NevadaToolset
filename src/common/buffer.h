@@ -39,7 +39,7 @@ public:
     void Set_Buffer(void *buffer) { m_buffer = static_cast<uint8_t*>(buffer); }
     void Set_Allocated(bool allocated) { m_allocated = allocated; }
     bool Is_Allocated() { return m_allocated; }
-    bool Is_Valid() { return m_buffer != nullptr && m_size > 0; }
+    bool Is_Valid() const { return m_buffer != nullptr && m_size > 0; }
     void Reset() { Free(); Clear(); }
     void Resize(int size = 0);
     void Resize(void *buff, int size = 0);

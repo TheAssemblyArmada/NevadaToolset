@@ -75,7 +75,7 @@ private:
 };
 
 template<typename CRC>
-int32_t __cdecl Calculate_CRC(const void *buffer, unsigned length)
+int32_t Calculate_CRC(const void *buffer, unsigned length)
 {
     return CRC()(buffer, length);
 }

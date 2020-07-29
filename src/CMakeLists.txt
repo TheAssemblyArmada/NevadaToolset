@@ -10,6 +10,7 @@ add_library(common STATIC
     common/buffpipe.cpp
     common/buffstraw.cpp
     common/crc.cpp
+    common/cstraw.cpp
     common/dipthong.cpp
     common/filepipe.cpp
     common/filestraw.cpp
