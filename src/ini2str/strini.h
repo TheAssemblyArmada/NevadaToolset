@@ -13,6 +13,9 @@
  *            A full copy of the GNU General Public License can be found in
  *            LICENSE
  */
+#ifndef STRINI_H
+#define STRINI_H
+
 #include "ini.h"
 
 #define STRINI_MAX_BUF_SIZE 4096
@@ -40,3 +43,5 @@ private:
     static char *Codepage_To_UTF8(const char *string, int codepage);
     static char *UTF8_To_Codepage(const char *string, int codepage);
 };
+
+#endif
