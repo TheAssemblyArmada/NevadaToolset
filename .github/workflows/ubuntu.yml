@@ -1,0 +1,40 @@
+name: ubuntu
+
+on:
+  pull_request:
+  push:
+  release:
+    types: published
+
+jobs:
+  build:
+    runs-on: ubuntu-18.04
+    strategy:
+      matrix:
+        buildtype: [Debug, Release]
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: 'true'
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libwxgtk3.0-dev
+
+    - name: Build toolset
+      run: |
+        cmake -DCMAKE_BUILD_TYPE=${{ matrix.buildtype }} -DBUILD_GUI_TOOLS=ON -B build
+        cmake --build build --parallel --config ${{ matrix.buildtype }}
+
+    - name: Create toolset archive
+      shell: bash
+      run: |
+        mkdir artifact
+        7z a artifact/nevadatools_ubuntu_${{ matrix.buildtype }}.zip ./build/src/makemix ./build/src/strgen ./build/src/wxstrgen
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v1
+      with:
+        name: toolset_archives
+        path: artifact
