@@ -135,6 +135,7 @@ bool MixNameDatabase::Add_Entry(const char *file_name, const char *comment, Hash
             }
             if (it->second.ra_crc == 0) {
                 it->second.ra_crc = Calculate_CRC<CRCEngine>(name.c_str(), (unsigned)name.size());
+                m_isMapDirty = true;
             }
 
             if (it->second.ts_crc == 0) {
