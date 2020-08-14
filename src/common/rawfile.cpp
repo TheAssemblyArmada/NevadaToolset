@@ -166,16 +166,18 @@ bool RawFileClass::Open(int rights)
 #ifdef PLATFORM_WINDOWS
     switch (rights) {
         case FM_READ:
-            m_Handle = CreateFileA(m_Filename, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+            m_Handle =
+                CreateFileW(UTF8To16(m_Filename), GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
             break;
 
         case FM_WRITE:
-            m_Handle = CreateFileA(m_Filename, GENERIC_WRITE, 0, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
+            m_Handle = CreateFileW(UTF8To16(m_Filename), GENERIC_WRITE, 0, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
             break;
 
         // Based on the RA code, this is actually READ/WRITE
         case FM_READ | FM_WRITE:
-            m_Handle = CreateFileA(m_Filename, GENERIC_READ | GENERIC_WRITE, 0, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
+            m_Handle =
+                CreateFileW(UTF8To16(m_Filename), GENERIC_READ | GENERIC_WRITE, 0, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
             break;
 
         default:
@@ -235,7 +237,7 @@ bool RawFileClass::Is_Available(bool forced)
     }
 
 #ifdef PLATFORM_WINDOWS
-    m_Handle = CreateFileA(m_Filename, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+    m_Handle = CreateFileW(UTF8To16(m_Filename), GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
 
     if (m_Handle != INVALID_HANDLE_VALUE) {
         // close the file handle/stream.
