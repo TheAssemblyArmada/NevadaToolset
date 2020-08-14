@@ -1,4 +1,5 @@
-add_library(common STATIC
+set(COMMON_SRC
+    common/whereami.c
     common/b64pipe.cpp
     common/b64straw.cpp
     common/base64.cpp
@@ -16,6 +17,7 @@ add_library(common STATIC
     common/filestraw.cpp
     common/ini.cpp
     common/mpmath.cpp
+    common/paths.cpp
     common/pipe.cpp
     common/pk.cpp
     common/pkpipe.cpp
@@ -31,6 +33,13 @@ add_library(common STATIC
     common/straw.cpp
 )
 
+if(WIN32 OR "${CMAKE_SYSTEM}" MATCHES "Windows")
+    list(APPEND COMMON_SRC common/paths_win.cpp)
+else()
+    list(APPEND COMMON_SRC common/paths_posix.cpp)
+endif()
+
+add_library(common STATIC ${COMMON_SRC})
 target_link_libraries(common PUBLIC base captnlog)
 target_include_directories(common PUBLIC common)
 
