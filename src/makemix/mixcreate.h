@@ -295,6 +295,9 @@ void MixFileCreatorClass<FC, CRC>::Write_Mix()
 
     headersize += pipe_to_use->Put(&tmpheader, sizeof(tmpheader));
 
+    // This forces a sort of the index which is important to get the header written in the correct order.
+    m_fileIndex.Is_Present(0);
+
     // Write the index, the index should have been byte swapped as it was
     // generated if it was needed.
     for (int i = 0; i < m_fileIndex.Count(); ++i) {
