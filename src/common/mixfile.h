@@ -100,6 +100,8 @@ public:
     static BOOL Cache(const char *filename, BufferClass *buffer = nullptr);
     static BOOL Offset(const char *filename, void **cachedfile = nullptr, MixFileClass<FC, CRC> **mixfile = nullptr,
         int *file_offset = 0, int *file_size = 0);
+    static BOOL Offset(int32_t crc, void **cachedfile = nullptr, MixFileClass<FC, CRC> **mixfile = nullptr,
+        int *file_offset = 0, int *file_size = 0);
 
 private:
     // Private load function shared by the ctors.
@@ -455,16 +457,20 @@ template<typename FC, typename CRC>
 BOOL MixFileClass<FC, CRC>::Offset(
     const char *filename, void **cachedfile, MixFileClass<FC, CRC> **mixfile, int *file_offset, int *file_size)
 {
-    if (filename == nullptr) {
-        return false;
-    }
-
     char fname[NAME_MAX];
     strlcpy(fname, filename, NAME_MAX);
+
+    return Offset(Calculate_CRC<CRC>(strupr(fname), (unsigned)strlen(fname)), cachedfile, mixfile, file_offset, file_size);
+}
+
+template<typename FC, typename CRC>
+BOOL MixFileClass<FC, CRC>::Offset(
+    int32_t crc, void **cachedfile, MixFileClass<FC, CRC> **mixfile, int *file_offset, int *file_size)
+{
     FileInfoStruct entry;
 
-    // If the filename is valid, generate a hash based on the filename so we
-    entry.m_CRC = Calculate_CRC<CRC>(strupr(fname), strlen(fname));
+    // Look directly for the CRC.
+    entry.m_CRC = crc;
 
     // Iterate over the list of loaded MixFileClass' and search them until
     // we find one that has the file or we reach the end of the list.
