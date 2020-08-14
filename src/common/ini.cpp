@@ -134,6 +134,13 @@ bool INIClass::Clear(const char *section, const char *entry)
     return true;
 }
 
+int INIClass::Save(const char *filename) const
+{
+    RawFileClass fc(filename);
+
+    return Save(fc);
+}
+
 int INIClass::Save(FileClass &file) const
 {
     FilePipe fpipe(file);
@@ -192,6 +199,13 @@ int INIClass::Save(Pipe &pipe) const
 
     // Return the total count of bytes we wrote to the stream.
     return total;
+}
+
+int INIClass::Load(const char *filename)
+{
+    RawFileClass fc(filename);
+
+    return Load(fc);
 }
 
 int INIClass::Load(FileClass &file)

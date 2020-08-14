@@ -152,8 +152,10 @@ public:
     bool Clear(const char *section = nullptr, const char *entry = nullptr);
     bool Is_Loaded() const { return m_sectionList.First()->Is_Valid(); }
 
+    int Save(const char *filename) const;
     int Save(FileClass &file) const;
     virtual int Save(Pipe &pipe) const;
+    int Load(const char *filename);
     int Load(FileClass &file);
     virtual int Load(Straw &straw);
 
