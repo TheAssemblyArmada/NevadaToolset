@@ -77,3 +77,7 @@ endif()
 # Mix creator program
 add_executable(makemix makemix/makemix.cpp)
 target_link_libraries(makemix PUBLIC common)
+
+# Mix extractor program
+add_executable(unmakemix makemix/unmakemix.cpp makemix/mixnamedb.cpp makemix/gmixdb.c)
+target_link_libraries(unmakemix PUBLIC common)

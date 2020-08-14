@@ -6,9 +6,17 @@ A set of Open Source tools for manipulating types of game data from various earl
 
 Converts between a utf8 ini file format for easy translation and the in game binary string table in an old dos code page.
 
+### wxstrgen
+
+GUI version of the above util for people who can't manage a command line interface.
+
 ### makemix
 
 Packs files into "mix" archive files.
+
+### unmakemix
+
+Extracts files from "mix" archive files.
 
 ## Licence
 
